@@ -1,3 +1,3 @@
 # ansible-network-code
-ansible-playbooks with ntc_ansible
+ansible-playbooks 
 requires ntc_ansible - https://github.com/networktocode/ntc-ansible
