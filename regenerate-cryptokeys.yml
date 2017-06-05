@@ -1,0 +1,34 @@
+---
+
+- name: Get data from devices
+  hosts: hosts
+  connection: local
+  gather_facts: False
+
+  tasks:
+
+   - name:  Get Hostname from device
+     ntc_show_command:
+       connection: ssh
+       platform: cisco_ios_ssh
+       template_dir: "/usr/lib/python2.7/dist-packages/ansible/modules/extras/ntc-ansible/ntc-templates/templates"
+       command: "show version"
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+     register: device
+
+   - debug: var=device
+
+   - name: Remove/generate new crypto keys
+     ntc_config_command:
+       connection: ssh
+       platform: cisco_ios_ssh
+       commands:
+       - no ip domain name
+       - "crypto key zeroize rsa\ryes\r"
+       - crypto key generate rsa label {{item.hostname}} general-keys modulus 2048
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+     with_items: "{{device.response}}"
