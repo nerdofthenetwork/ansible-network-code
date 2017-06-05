@@ -1,2 +1,2 @@
 # ansible-network-code
-ansible-playbook with ntc_ansible
+ansible-playbooks with ntc_ansible
