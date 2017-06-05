@@ -1,0 +1,61 @@
+---
+
+- name: Get devices
+  hosts: hosts
+  connection: local
+  gather_facts: False
+
+  tasks: 
+  
+   - name: Enable LLDP 
+     ntc_config_command:
+       connection: ssh 
+       platform: cisco_ios_ssh
+       commands: 
+       - lldp run
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+
+#Pause for LLDP database to become populated
+   - pause:
+       minutes: 2
+
+   - name:  Get LLDP neighbors
+     ntc_show_command:
+       connection: ssh 
+       platform: cisco_ios_ssh
+       template_dir: "/usr/lib/python2.7/dist-packages/ansible/modules/extras/ntc-ansible/ntc-templates/templates"
+       command: "show lldp neighbors"
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+     register: lldp
+
+   - debug: var=lldp
+
+   - name: Configure interface to support AP
+     ntc_config_command:
+       connection: ssh
+       platform: cisco_ios_ssh
+       commands:
+       - default interface {{item.local_interface}}
+       - interface {{item.local_interface}}
+       - description {{item.neighbor|lower}}
+       - switchport mode trunk
+       - switchport trunk native vlan 40
+       - switchport trunk allowed vlan 40,50,110
+       - spanning-tree portfast trunk
+       - load-inteval 30
+       - srr-queue bandwidth share 10 10 60 20
+       - priority-queue out
+       - mls qos trust dscp
+       - no shutdown
+       - end
+       - wr mem
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+     when:
+     - "'W' in item.capability"
+     with_items: "{{lldp.response}}"
