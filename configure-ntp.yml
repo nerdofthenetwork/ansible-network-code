@@ -1,0 +1,38 @@
+---
+
+- name: Get data from devices
+  hosts: hosts
+  connection: local
+  gather_facts: False
+
+  tasks: 
+  
+   - name:  Get current NTP servers
+     ntc_show_command:
+       connection: ssh 
+       platform: cisco_ios_ssh
+       template_dir: "/usr/lib/python2.7/dist-packages/ansible/modules/extras/ntc-ansible/ntc-templates/templates"
+       command: "show run | i ntp server"
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+     register: ntp
+
+   - debug: var=ntp
+
+   - name: Update NTP servers
+     ntc_config_command:
+       connection: ssh
+       platform: cisco_ios_ssh
+       commands: 
+       - no ntp server {{item.ntpserver}}
+       - ntp server 1.1.1.1
+       - ntp server 1.2.2.2
+       - ntp server 1.3.3.3
+       - ntp server 1.4.4.4
+       - end
+       - copy run start
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+     with_items: "{{ntp.response}}"
