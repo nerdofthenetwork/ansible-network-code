@@ -6,7 +6,8 @@
   gather_facts: False
 
   tasks: 
-  
+   - include_vars: vars.yml
+   
    - name: Enable LLDP 
      ntc_config_command:
        connection: ssh 
