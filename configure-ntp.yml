@@ -1,12 +1,13 @@
 ---
 
-- name: Get data from devices
+- name: Validate and change ntp server settings 
   hosts: hosts
   connection: local
   gather_facts: False
 
   tasks: 
-  
+   - include_vars: vars.yml
+   
    - name:  Get current NTP servers
      ntc_show_command:
        connection: ssh 
