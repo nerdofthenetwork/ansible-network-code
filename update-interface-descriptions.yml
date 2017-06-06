@@ -1,0 +1,37 @@
+---
+
+- name: Update interface descriptions via CDP
+  hosts: test
+  connection: local
+  gather_facts: False
+
+  tasks: 
+   - include_vars: vars.yml
+
+   - name:  Get CDP neighbors
+     ntc_show_command:
+       connection: ssh 
+       platform: cisco_ios_ssh
+       template_dir: "/usr/lib/python2.7/dist-packages/ansible/modules/extras/ntc-ansible/ntc-templates/templates"
+       command: "show cdp neighbors detail"
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+     register: cdp
+
+   - debug: var=cdp
+
+   - name: Update Interface descriptions
+     ntc_config_command:
+       connection: ssh
+       platform: cisco_ios_ssh
+       commands:
+       - interface {{item.local_port}}
+       - description {{item.destination_host.split('.')[0]|lower}} {{item.remote_port[0:2]|lower}}
+       host: "{{inventory_hostname}}"
+       username: "{{username}}"
+       password: "{{password}}"
+     when: 
+     - "'Phone' not in item.platform"
+     - "'Meraki' not in item.platform" 
+     with_items: "{{cdp.response}}"
