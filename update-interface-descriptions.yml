@@ -27,7 +27,7 @@
        platform: cisco_ios_ssh
        commands:
        - interface {{item.local_port}}
-       - description {{item.destination_host.split('.')[0]|lower}} {{item.remote_port[0:2]|lower}}
+       - description {{item.destination_host.split('.')[0]|lower}} {{item.remote_port|lower}}
        host: "{{inventory_hostname}}"
        username: "{{username}}"
        password: "{{password}}"
